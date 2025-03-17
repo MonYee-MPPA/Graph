@@ -1,0 +1,134 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(igraph)
+library(rio)
+library(CINNA)
+
+```
+
+
+```{r}
+rm(list = ls())
+GitLink='https://github.com/Mon-CSS/Network/raw/refs/heads/main/MyGraphs/css_G.graphml'
+Elites=read_graph(GitLink,format = 'graphml')
+summary(Elites)
+V(Elites)$name=V(Elites)$id
+V(Elites)
+is_connected(Elites)
+Elites_BIG=CINNA::giant_component_extract(Elites)
+summary(Elites_BIG)
+summary(Elites_BIG[[1]])
+
+
+
+# Who are the nodes that represent the vertices in the diameter?
+# Michell      Miro Quesada Romero       Bentin       Wong Lu 
+diameter(Elites_BIG[[1]])
+farthest_vertices(Elites_BIG[[1]])
+get_diameter(Elites_BIG[[1]])
+
+Elites_BIG = Elites_BIG[[1]]
+
+
+# Make a plot that highlights the nodes with the highest betweenness.
+sort(betweenness(Elites_BIG,normalized=T))
+set.seed(123)
+TheV=c('Bentin',  'Fort')
+neigh.nodes <- neighbors(Elites_BIG, V(Elites_BIG)[name%in%TheV])
+# Set colors to plot the neighbors:
+vcol <- rep("grey80", vcount(Elites_BIG))
+vcol[V(Elites_BIG)$name%in%TheV] <- "red"
+plot(Elites_BIG, vertex.color=vcol,layout=layout.fruchterman.reingold)
+
+#Make a DataFrame with three the centrality measures, and plot those three values in a scatterplot.
+rounding=2
+degr=round(degree(Elites_BIG,normalized=T),rounding)
+close=round(closeness(Elites_BIG,normalized=T),rounding)
+betw=round(betweenness(Elites_BIG,normalized=T),rounding)
+
+DFCentrality=as.data.frame(cbind(degr,close,betw),stringsAsFactors = F)
+names(DFCentrality)=c('Degree','Closeness','Betweenness')
+
+DFCentrality$Elites=row.names(DFCentrality)
+row.names(DFCentrality)=NULL
+head(DFCentrality)
+
+library(ggplot2)
+library(ggrepel)
+ggplot(DFCentrality, aes(x=Betweenness, y=Closeness)) + 
+    theme_classic() + geom_point() +
+    geom_label_repel(aes(label= Elites,fill=Degree),color='white') +
+    scale_fill_gradient2(low = "red", mid='grey50',high ="darkgreen",
+                           midpoint = 0.3)
+
+```
+```{r}
+GitLink='https://github.com/Mon-CSS/Network/raw/refs/heads/main/MyGraphs/css_G2.graphml'
+Top_Seattle=read_graph(GitLink,format = 'graphml')
+summary(Top_Seattle)
+V(Top_Seattle)$name=V(Top_Seattle)$id
+V(Top_Seattle)$name
+#Is the whole network connected?
+is_connected(Top_Seattle)
+#How many nodes should be deleted to split this network?
+#none!
+vertex_connectivity(Top_Seattle)
+(TheCut=articulation_points(Top_Seattle))
+(TheBridge=bridges(Top_Seattle))
+#Make a DataFrame with three the Link Analysis measures Hubs, Authorities, and PageRank, and plot those three values in a scatterplot.
+Lk_hub=hub_score(Top_Seattle)$vector
+Lk_auth=authority_score(Top_Seattle)$vector
+Lk_page=page_rank(Top_Seattle)$vector
+Top_Seattle_LINK=as.data.frame(cbind(Lk_hub,Lk_auth,Lk_page))
+Top_Seattle_LINK
+
+Top_Seattle_LINK$person=row.names(Top_Seattle_LINK)
+
+ggplot(Top_Seattle_LINK, aes(x=Lk_hub, y=Lk_auth)) + 
+    theme_classic() + geom_point() +
+    geom_label_repel(aes(label=person,fill=Lk_page),color='white') +
+    scale_fill_gradient2(low = "red", mid='grey50',high ="darkgreen",
+                           midpoint = 0.05)
+```
+```{r}
+GitLink='https://github.com/Mon-CSS/Network/raw/refs/heads/main/MyGraphs/css_bP.graphml'
+Fifa = read_graph(GitLink,format = 'graphml')
+is_connected(Fifa)
+
+summary(Fifa)
+V(Fifa)$name=V(Fifa)$id
+
+#What is the density of this network?
+edge_density(Fifa)
+
+#Make a DataFrame with three the centrality measures, and plot those three values in a scatterplot.
+
+rounding=2
+degr=round(degree(Fifa,normalized=T),rounding)
+close=round(closeness(Fifa,normalized=T),rounding)
+betw=round(betweenness(Fifa,normalized=T),rounding)
+
+DFCentrality=as.data.frame(cbind(degr,close,betw),stringsAsFactors = F)
+names(DFCentrality)=c('Degree','Closeness','Betweenness')
+
+DFCentrality$players=row.names(DFCentrality)
+row.names(DFCentrality)=NULL
+head(DFCentrality)
+
+library(ggplot2)
+library(ggrepel)
+ggplot(DFCentrality, aes(x=Betweenness, y=Closeness)) + 
+    theme_classic() + geom_point() +
+    geom_label_repel(aes(label=players,fill=Degree),color='white') +
+    scale_fill_gradient2(low = "red", mid='grey50',high ="darkgreen",
+                           midpoint = 0.3)
+
+
+```
+
