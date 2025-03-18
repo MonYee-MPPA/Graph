@@ -97,12 +97,16 @@ ggplot(Top_Seattle_LINK, aes(x=Lk_hub, y=Lk_auth)) +
                            midpoint = 0.05)
 ```
 ```{r}
-GitLink='https://github.com/Mon-CSS/Network/raw/refs/heads/main/MyGraphs/css_bP.graphml'
-Fifa = read_graph(GitLink,format = 'graphml')
-is_connected(Fifa)
+GitLink= 'https://github.com/MonYee-MPPA/Graph/raw/refs/heads/main/MyGraphs/css_bP-Copy1.graphml'
 
+Fifa = read_graph(GitLink,format = 'graphml')
+head(Fifa)
+is_connected(Fifa)
 summary(Fifa)
 V(Fifa)$name=V(Fifa)$id
+
+
+
 
 #What is the density of this network?
 edge_density(Fifa)
@@ -117,7 +121,7 @@ betw=round(betweenness(Fifa,normalized=T),rounding)
 DFCentrality=as.data.frame(cbind(degr,close,betw),stringsAsFactors = F)
 names(DFCentrality)=c('Degree','Closeness','Betweenness')
 
-DFCentrality$players=row.names(DFCentrality)
+DFCentrality$nationality=row.names(DFCentrality)
 row.names(DFCentrality)=NULL
 head(DFCentrality)
 
@@ -125,7 +129,7 @@ library(ggplot2)
 library(ggrepel)
 ggplot(DFCentrality, aes(x=Betweenness, y=Closeness)) + 
     theme_classic() + geom_point() +
-    geom_label_repel(aes(label=players,fill=Degree),color='white') +
+    geom_label_repel(aes(label=nationality,fill=Degree),color='white') +
     scale_fill_gradient2(low = "red", mid='grey50',high ="darkgreen",
                            midpoint = 0.3)
 
